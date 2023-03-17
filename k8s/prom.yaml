@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: monitoring
+  name: m1000e-prometheus-deployment
+  labels:
+    app: m1000e-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: m1000e-prometheus
+  # See https://kubernetes.io/docs/tasks/run-application/run-single-instance-stateful-application/
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: m1000e-prometheus
+    spec:
+        containers:
+        - image: <the image you built>
+          name: m1000e-prometheus
+          args:
+          - /creds/creds.json
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+          - name: creds
+            mountPath: "/creds"
+            readOnly: true
+        volumes:
+        - name: creds
+          secret:
+            secretName: m1000e-prometheus-credentials
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m1000e-prometheus
+  namespace: monitoring
+  labels:
+    app: m1000e-prometheus
+spec:
+  selector:
+    app: m1000e-prometheus
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

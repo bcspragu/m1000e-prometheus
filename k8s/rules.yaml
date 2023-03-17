@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: chassis-rule
+  namespace: monitoring
+spec:
+  groups:
+  - name: chassis.rules
+    rules:
+      - alert: ChassisTempWarm
+        annotations:
+          summary: The server is warmer than we would like it to be.
+          description: Go down to the basement and make sure everything is cool.
+        expr: m1000e_ambient_temp_celsius > 30
+        for: 5m
+        labels:
+          severity: warning
+      - alert: ChassisTempHigh
+        annotations:
+          summary: The server is likely to trigger a thermal failure soon.
+          description: >
+            It's likely pretty warm in the basement, go turn on the AC. Or if
+            it's really serious, bring the box fan down, open the server room
+            door fully, and circulate the air hard.
+        expr: m1000e_ambient_temp_celsius > 35
+        for: 1m
+        labels:
+          severity: critical
+
