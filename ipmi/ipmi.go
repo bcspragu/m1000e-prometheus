@@ -1,6 +1,7 @@
 package ipmi
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -19,6 +20,19 @@ func New(user, pass string) *Client {
 		pass:    pass,
 		clients: make(map[string]*ipmi.Client),
 	}
+}
+
+func (c *Client) Close() error {
+	var errs []error
+	for _, client := range c.clients {
+		if err := client.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+	return nil
 }
 
 func (c *Client) AmbientTemp(host string, port int) (float64, error) {
@@ -46,5 +60,5 @@ func (c *Client) AmbientTemp(host string, port int) (float64, error) {
 		return 0, fmt.Errorf("failed to load sdr ambient temp: %w", err)
 	}
 
-	return sdr.Full.ConvertReading(sdr.Full.NominalReadingRaw), nil
+	return sdr.Full.SensorValue, nil
 }

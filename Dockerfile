@@ -8,11 +8,11 @@ COPY ./go.mod ./go.sum ./
 
 RUN go mod download && go mod verify
 
-COPY main.go ./
+COPY cmd/prometheus ./cmd/prometheus
 COPY racadm/ ./racadm/
 COPY ipmi/ ./ipmi/
 
-RUN go test ./... && GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /build/server
+RUN go test ./... && GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /build/server ./cmd/prometheus
 
 FROM scratch
 
